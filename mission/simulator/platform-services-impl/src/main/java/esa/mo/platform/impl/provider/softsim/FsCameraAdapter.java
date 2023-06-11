@@ -33,28 +33,27 @@ import com.github.sarxos.webcam.ds.fswebcam.FsWebcamDriver;
  *
  * @author Kosmoedge
  */
-public class CameraWindowsAdapter implements CameraAdapterInterface {
+public class FsCameraAdapter implements CameraAdapterInterface {
 
-    private static final Logger LOGGER = Logger.getLogger(CameraWindowsAdapter.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FsCameraAdapter.class.getName());
     private static final Duration PREVIEW_EXPOSURE_TIME = new Duration(0.002);
     private static final Duration MINIMUM_PERIOD = new Duration(1);
     private static final float PREVIEW_GAIN = 8.f;
-    private static final int IMAGE_WIDTH = 2048;
-    private static final int IMAGE_HEIGHT = 1944;
+    private static final int IMAGE_WIDTH = 640;
+    private static final int IMAGE_HEIGHT = 480;
     private static final int PREVIEW_WIDTH = 600;
     private static final int PREVIEW_HEIGHT = 600;
     private final PictureFormatList supportedFormats = new PictureFormatList();
     private final PowerControlAdapterInterface pcAdapter;
 
-
-    public CameraWindowsAdapter(PowerControlAdapterInterface pcAdapter) {
+    public FsCameraAdapter(PowerControlAdapterInterface pcAdapter) {
         this.pcAdapter = pcAdapter;
         this.supportedFormats.add(PictureFormat.RAW);
         this.supportedFormats.add(PictureFormat.RGB24);
         this.supportedFormats.add(PictureFormat.BMP);
         this.supportedFormats.add(PictureFormat.PNG);
         this.supportedFormats.add(PictureFormat.JPG);
-        LOGGER.log(Level.INFO, "CameraWindowsAdapter Initialisation");
+        LOGGER.log(Level.INFO, "FsCameraAdapter Initialisation");
         Webcam.setDriver(new FsWebcamDriver());
     }
 
@@ -79,9 +78,9 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
     @Override
     public synchronized Picture getPicturePreview() throws IOException {
         final PixelResolution resolution = new PixelResolution(new UInteger(PREVIEW_WIDTH), new UInteger(
-            PREVIEW_HEIGHT));
+                PREVIEW_HEIGHT));
         return takePicture(new CameraSettings(resolution, PictureFormat.RAW, PREVIEW_EXPOSURE_TIME, PREVIEW_GAIN,
-            PREVIEW_GAIN, PREVIEW_GAIN));
+                PREVIEW_GAIN, PREVIEW_GAIN));
     }
 
     @Override
@@ -92,25 +91,28 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
     @Override
     public Picture takePicture(final CameraSettings settings) throws IOException {
         synchronized (this) {
-            LOGGER.log(Level.INFO, "CameraWindowsAdapter ready to take picture");
+            LOGGER.log(Level.INFO, "FsCameraAdapter ready to take picture");
             final Time timestamp = HelperTime.getTimestampMillis();
 
             Webcam webcam = Webcam.getDefault();
 
-            if(webcam == null) {
+            if (webcam == null) {
                 LOGGER.severe("No camera");
             }
 
-            webcam.setViewSize(new Dimension((int) settings.getResolution().getWidth().getValue(),(int) settings.getResolution().getHeight().getValue()));
+            webcam.setViewSize(new Dimension((int) settings.getResolution().getWidth().getValue(),
+                    (int) settings.getResolution().getHeight().getValue()));
             LOGGER.log(Level.INFO, "Resolution set.");
             webcam.open();
             LOGGER.log(Level.INFO, "Opened camera");
-			byte[] data = webcam.getImageBytes().array();
-			webcam.close();
-
-            if (settings.getFormat() != PictureFormat.RAW) {
-                data = convertImage(data, settings.getFormat());
-            }
+           
+            BufferedImage image = webcam.getImage();
+            LOGGER.log(Level.INFO, "Image taken");
+            webcam.close();
+            LOGGER.log(Level.INFO, "Closed camera");
+            
+            byte[] data = convertImage(image, settings.getFormat());
+            LOGGER.log(Level.INFO, "Image converted to byte array");
 
             final CameraSettings replySettings = new CameraSettings();
             replySettings.setResolution(settings.getResolution());
@@ -134,8 +136,7 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
         return supportedFormats;
     }
 
-    private byte[] convertImage(byte[] rawImage, final PictureFormat targetFormat) throws IOException {
-        BufferedImage image = OPSSATCameraDebayering.getDebayeredImage(rawImage);
+    private byte[] convertImage(BufferedImage image, final PictureFormat targetFormat) throws IOException {
         byte[] ret = null;
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -148,8 +149,8 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
             for (int i = 0; i < rgba.length; ++i) {
                 final int pixelval = rgba[i];
                 ret[i * 3 + 0] = (byte) ((pixelval >> 16) & 0xFF); // R
-                ret[i * 3 + 1] = (byte) ((pixelval >> 8) & 0xFF);  // G
-                ret[i * 3 + 2] = (byte) ((pixelval) & 0xFF);       // B
+                ret[i * 3 + 1] = (byte) ((pixelval >> 8) & 0xFF); // G
+                ret[i * 3 + 2] = (byte) ((pixelval) & 0xFF); // B
                 // Ignore Alpha channel
             }
         } else if (targetFormat.equals(PictureFormat.BMP)) {
@@ -162,6 +163,10 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
             stream.close();
         } else if (targetFormat.equals(PictureFormat.JPG)) {
             ImageIO.write(image, "JPEG", stream);
+            ret = stream.toByteArray();
+            stream.close();
+        } else if (targetFormat.equals(PictureFormat.RAW)) {
+            ImageIO.write(image, "RAW", stream);
             ret = stream.toByteArray();
             stream.close();
         } else {

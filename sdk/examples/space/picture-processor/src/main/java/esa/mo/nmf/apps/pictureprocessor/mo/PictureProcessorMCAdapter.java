@@ -95,7 +95,7 @@ public class PictureProcessorMCAdapter extends MonitorAndControlNMFAdapter imple
 
     @Override
     public UInteger actionArrived(Identifier name, AttributeValueList attributeValues, Long actionInstanceObjId,
-        boolean reportProgress, MALInteraction interaction) {
+            boolean reportProgress, MALInteraction interaction) {
 
         if (ACTION_TAKE_AND_PROCESS_PICTURE.equals(name.getValue())) {
             takeAndProcessPicture(actionInstanceObjId, attributeValues);
@@ -116,22 +116,22 @@ public class PictureProcessorMCAdapter extends MonitorAndControlNMFAdapter imple
     }
 
     private void regiserActionTakeAndProcessPicture(ActionDefinitionDetailsList actionDefs,
-        IdentifierList actionNames) {
+            IdentifierList actionNames) {
         ArgumentDefinitionDetailsList arguments = new ArgumentDefinitionDetailsList();
         {
             Byte rawType = Attribute._INTEGER_TYPE_SHORT_FORM;
             arguments.add(new ArgumentDefinitionDetails(new Identifier("min process duration"),
-                "minimum picture processing duration", rawType, "seconds", null, null, null));
+                    "minimum picture processing duration", rawType, "seconds", null, null, null));
         }
         {
             Byte rawType = Attribute._INTEGER_TYPE_SHORT_FORM;
             arguments.add(new ArgumentDefinitionDetails(new Identifier("max process duration"),
-                "max picture processing duration", rawType, "seconds", null, null, null));
+                    "max picture processing duration", rawType, "seconds", null, null, null));
         }
 
         actionDefs.add(new ActionDefinitionDetails(
-            "Uses the NMF Camera to take a picture and process it through a python script", new UOctet((short) 0),
-            new UShort(TOTAL_STAGES), arguments));
+                "Uses the NMF Camera to take a picture and process it through a python script", new UOctet((short) 0),
+                new UShort(TOTAL_STAGES), arguments));
         actionNames.add(new Identifier(ACTION_TAKE_AND_PROCESS_PICTURE));
     }
 
@@ -140,11 +140,11 @@ public class PictureProcessorMCAdapter extends MonitorAndControlNMFAdapter imple
         {
             Byte rawType = Attribute._LONG_TYPE_SHORT_FORM;
             arguments.add(new ArgumentDefinitionDetails(new Identifier("process id"), "process id", rawType, "", null,
-                null, null));
+                    null, null));
         }
 
         actionDefs.add(new ActionDefinitionDetails("Destryo a process", new UOctet((short) 0), new UShort(1),
-            arguments));
+                arguments));
         actionNames.add(new Identifier(ACTION_DESTROY_PROCESS));
     }
 
@@ -159,7 +159,7 @@ public class PictureProcessorMCAdapter extends MonitorAndControlNMFAdapter imple
         LOG.info("Process Request Id " + actionInstanceObjId);
 
         PictureReceivedAdapter adapter = new PictureReceivedAdapter(this, actionInstanceObjId, outputFolder,
-            minProcessingDurationSeconds, maxProcessingDurationSeconds);
+                minProcessingDurationSeconds, maxProcessingDurationSeconds);
         try {
             connector.getPlatformServices().getCameraService().takePicture(defaultCameraSettings(), adapter);
             processMap.put(actionInstanceObjId, adapter);
@@ -194,7 +194,7 @@ public class PictureProcessorMCAdapter extends MonitorAndControlNMFAdapter imple
         final float gainR = 10;
         final float gainG = 8;
         final float gainB = 10;
-        final PixelResolution resolution = new PixelResolution(new UInteger(2048), new UInteger(1944));
+        final PixelResolution resolution = new PixelResolution(new UInteger(640), new UInteger(480));
         final Duration exposureTime = new Duration(0.200);
 
         return new CameraSettings(resolution, PictureFormat.JPG, exposureTime, gainR, gainG, gainB);

@@ -11,14 +11,17 @@ libraries:
 	cp -r parent package/mof
 	cp -r mission package/mof
 	cp -r sdk package/mof
-	cd package && docker build -f Dockerfile.Libraries -t ghcr.io/kosmoedge/nmf-libraries:latest .
+	cd package && docker buildx build --no-cache --platform linux/arm64/v8 -f Dockerfile.Libraries -t ghcr.io/kosmoedge/nmf-libraries:latest . --load
 	rm -rf package/mof	
 
 simulator: libraries
 	cd package && docker build --build-arg VERSION=${VERSION} -f Dockerfile.Simulator -t ghcr.io/kosmoedge/nmf-simulator:latest .	
 
+supervisor: 
+	cd package && docker buildx build --build-arg VERSION=${VERSION} --no-cache --platform linux/arm64/v8 -f Dockerfile.Simulator -t ghcr.io/kosmoedge/supervisor:latest . --load
+
 consumer-tool:
-	cd package && docker build --build-arg VERSION=$(VERSION) -f Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
+	cd package && docker build --build-arg VERSION=${VERSION} -f Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
 
 containers: libraries simulator consumer-tool
 
@@ -30,11 +33,11 @@ run: containers
 	docker stop consumer-tool-temp
 
 
-space-module-%: libraries
-	cd package && docker build --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=$(VERSION) -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
+space-module-%:
+	cd package && docker buildx build --no-cache --platform linux/arm64/v8 --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest . --load
 
 ground-module-%: libraries
-	cd package && docker build --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=$(VERSION) -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
+	cd package && docker build --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
 
 create_docker_net:
 	@ docker network inspect mo-bridge > /dev/null 2> /dev/null && : || docker network create mo-bridge

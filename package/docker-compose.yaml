@@ -4,7 +4,7 @@ services:
   publish-clock:
     container_name: publish-clock
     restart: on-failure
-    image: ghcr.io/kosmoedge/publish-clock:latest
+    image: kosmoedge/publish-clock:latest
     environment:
       - SUPERVISOR=maltcp://supervisor.package_default:1024/nanosat-mo-supervisor-Directory
       - APP=PushClock
