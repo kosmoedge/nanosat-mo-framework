@@ -1,0 +1,34 @@
+FROM --platform=linux/arm64/v8 maven:3.8.1-jdk-11-slim AS builder
+WORKDIR /build
+COPY core /build/core
+COPY parent /build/parent
+COPY mission/simulator /build/mission/simulator
+COPY sdk /build/sdk
+COPY pom.xml /build/pom.xml
+COPY logging.properties /build/logging.properties
+RUN mvn clean install -P assembly-with-dependencies
+
+
+# JRE (not JDK) compatible with arm64/v8
+FROM --platform=linux/arm64/v8 eclipse-temurin:11-jre-jammy
+
+# Use given arguments for module fetching
+ARG VERSION=${VERSION}
+ARG MODULE_PATH=${MODULE_PATH}
+ARG MODULE_NAME=${MODULE_NAME}
+
+# Load Supervisor central directory URI from env variable
+ENV SUPERVISOR = ${SUPERVISOR}
+
+# Copy module jar and all corresponding property files in the same container directory
+RUN mkdir /opt/ground-module
+COPY --from=builder /build/${MODULE_PATH}/target/${MODULE_NAME}-${VERSION}-jar-with-dependencies.jar /opt/ground-module/module.jar
+COPY logging.properties /opt/ground-module/
+COPY sdk/sdk-package/src/main/resources/space-common/*.properties /opt/ground-module/
+COPY sdk/sdk-package/src/main/resources/ground-consumer-root/*.properties /opt/ground-module/
+
+# Set the working directory in the container
+WORKDIR /opt/ground-module
+
+# Run jar
+CMD ["java", "-jar", "-Desa.mo.nmf.centralDirectoryURI=$SUPERVISOR", "module.jar"]

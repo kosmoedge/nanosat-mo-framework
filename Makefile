@@ -1,6 +1,7 @@
-VERSION:=$(shell package/scripts/version.sh)
-DOCKER_COMPOSE_FILE := package/docker-compose.yaml
+VERSION := $(shell deployment/scripts/version.sh)
+DOCKER_COMPOSE_FILE := deployment/docker-compose.yaml
 
+<<<<<<< HEAD
 libraries:
 	rm -rf package/mof
 	mkdir -p package/mof
@@ -13,17 +14,29 @@ libraries:
 	cp -r sdk package/mof
 	cd package && docker buildx build --no-cache --platform linux/arm64/v8 -f Dockerfile.Libraries -t ghcr.io/kosmoedge/nmf-libraries:latest . --load
 	rm -rf package/mof	
-
-simulator: libraries
-	cd package && docker build --build-arg VERSION=${VERSION} -f Dockerfile.Simulator -t ghcr.io/kosmoedge/nmf-simulator:latest .	
+=======
+assembly-jar:
+	mvn clean install -P assembly-with-dependencies
+>>>>>>> b00066dd (Add build to jar)
 
 supervisor: 
+	docker buildx build --no-cache --platform linux/arm64/v8 --build-arg VERSION=$(VERSION) -f deployment/Dockerfile.Supervisor -t ghcr.io/kosmoedge/supervisor:latest . --load
+
+<<<<<<< HEAD
+supervisor: 
 	cd package && docker buildx build --build-arg VERSION=${VERSION} --no-cache --platform linux/arm64/v8 -f Dockerfile.Simulator -t ghcr.io/kosmoedge/supervisor:latest . --load
+=======
+space-module-%: 
+	docker buildx build --no-cache --platform linux/arm64/v8 --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg MODULE_NAME=$* --build-arg VERSION=$(VERSION) -f deployment/Dockerfile.SpaceModule -t ghcr.io/kosmoedge/$*:latest . --load
+
+ground-module-%: 
+	docker buildx build --no-cache --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg MODULE_NAME=$* --build-arg VERSION=$(VERSION) -f deployment/Dockerfile.GroundModule -t ghcr.io/kosmoedge/$*:latest .
+>>>>>>> b00066dd (Add build to jar)
 
 consumer-tool:
-	cd package && docker build --build-arg VERSION=${VERSION} -f Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
+	docker buildx build --build-arg VERSION=$(VERSION) -f deployment/Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
 
-containers: libraries simulator consumer-tool
+containers: assembly-jar supervisor consumer-tool
 
 run: containers
 	mkdir -p ~/.m2/int/esa
@@ -31,13 +44,6 @@ run: containers
 	# docker cp consumer-tool-temp:/root/.m2/repository/int/esa ~/.m2/repository/int
 	docker cp /mof/sdk/sdk-package/target/nmf-sdk-$(VERSION) ~/.m2/repository/int
 	docker stop consumer-tool-temp
-
-
-space-module-%: libraries
-	cd package && docker buildx build --no-cache --platform linux/amd64,linux/arm64/v8 --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest . --push
-
-ground-module-%: libraries
-	cd package && docker build --build-arg VERSION=${VERSION} --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
 
 create_docker_net:
 	@ docker network inspect mo-bridge > /dev/null 2> /dev/null && : || docker network create mo-bridge

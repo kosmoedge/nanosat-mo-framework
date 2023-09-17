@@ -1,0 +1,30 @@
+FROM --platform=linux/arm64/v8 maven:3.8.1-jdk-11-slim AS builder
+WORKDIR /build
+COPY core /build/core
+COPY parent /build/parent
+COPY mission/simulator /build/mission/simulator
+COPY sdk /build/sdk
+COPY pom.xml /build/pom.xml
+COPY logging.properties /build/logging.properties
+RUN mvn clean install -P assembly-with-dependencies
+
+
+# JRE (not JDK) compatible with arm64/v8
+FROM --platform=linux/arm64/v8 eclipse-temurin:11-jre-jammy
+
+# Install camera library dependencies
+RUN apt-get update && apt-get install -y v4l-utils && apt-get install -y fswebcam
+
+# Use project version
+ARG VERSION=${VERSION}
+
+# Copy supervisor jar and all corresponding property files in the same container directory
+WORKDIR /opt/supervisor
+COPY --from=builder /build/core/nmf-composites/nanosat-mo-supervisor/target/nanosat-mo-supervisor-${VERSION}-jar-with-dependencies.jar ./supervisor.jar
+COPY logging.properties ./
+COPY sdk/sdk-package/src/main/resources/space-common/*.properties ./
+COPY sdk/sdk-package/src/main/resources/space-supervisor-root/*.properties ./
+COPY mission/simulator/opssat-spacecraft-simulator/platformsim.properties ./
+
+# Run jar
+CMD ["java", "-jar", "supervisor.jar"]

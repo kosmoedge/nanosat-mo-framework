@@ -49,6 +49,7 @@
   </developers>
   <properties>
     <maven.test.skip>true</maven.test.skip>
+    <assembly.mainClass>esa.mo.nmf.nanosatmosupervisor.NanosatMOSupervisorBasicImpl</assembly.mainClass>
   </properties>
   <dependencies>
     <dependency>
