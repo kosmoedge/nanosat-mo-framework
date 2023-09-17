@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries:2136
 ARG VERSION
@@ -7,5 +8,12 @@ RUN apt-get install -y v4l-utils
 RUN apt-get install -y fswebcam
 RUN cd sdk && mvn clean install
 
+=======
+FROM ghcr.io/kosmoedge/nmf-libraries
+ARG VERSION
+RUN cd sdk && mvn install
+RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
+>>>>>>> 61ca76d3 (add dynamic project version fetching in Dockerfiles)
 WORKDIR /mof/sdk/sdk-package/target/nmf-sdk-${VERSION}/home/nmf/nanosat-mo-supervisor-sim
 CMD ["./nanosat-mo-supervisor-sim.sh"]
