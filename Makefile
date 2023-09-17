@@ -1,4 +1,4 @@
-VERSION:=$(shell package/scripts/version.sh)
+VERSION := $(shell package/scripts/version.sh)
 DOCKER_COMPOSE_FILE := package/docker-compose.yaml
 
 libraries:
@@ -15,10 +15,10 @@ libraries:
 	rm -rf package/mof	
 
 simulator: libraries
-	cd package && docker build -f Dockerfile.Simulator -t ghcr.io/kosmoedge/nmf-simulator:latest .	
+	cd package && docker build --build-arg VERSION=${VERSION} -f Dockerfile.Simulator -t ghcr.io/kosmoedge/nmf-simulator:latest .	
 
 consumer-tool:
-	cd package && docker build -f Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
+	cd package && docker build --build-arg VERSION=$(VERSION) -f Dockerfile.ConsumerTool -t ghcr.io/kosmoedge/nmf-consumer-tool:latest .
 
 containers: libraries simulator consumer-tool
 
@@ -26,15 +26,15 @@ run: containers
 	mkdir -p ~/.m2/int/esa
 	docker run -d --rm --name consumer-tool-temp kosmoedge/nmf-consumer-tool:latest 
 	# docker cp consumer-tool-temp:/root/.m2/repository/int/esa ~/.m2/repository/int
-	docker cp /mof/sdk/sdk-package/target/nmf-sdk-2.1.0-SNAPSHOT ~/.m2/repository/int
+	docker cp /mof/sdk/sdk-package/target/nmf-sdk-$(VERSION) ~/.m2/repository/int
 	docker stop consumer-tool-temp
 
 
 space-module-%: libraries
-	cd package && docker build --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
+	cd package && docker build --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=$(VERSION) -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
 
 ground-module-%: libraries
-	cd package && docker build --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
+	cd package && docker build --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=$(VERSION) -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
 
 create_docker_net:
 	@ docker network inspect mo-bridge > /dev/null 2> /dev/null && : || docker network create mo-bridge
