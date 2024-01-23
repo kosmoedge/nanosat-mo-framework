@@ -55,7 +55,7 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
         this.supportedFormats.add(PictureFormat.PNG);
         this.supportedFormats.add(PictureFormat.JPG);
         LOGGER.log(Level.INFO, "CameraWindowsAdapter Initialisation");
-        // Webcam.setDriver(new FsWebcamDriver());
+        Webcam.setDriver(new FsWebcamDriver());
     }
 
     @Override
