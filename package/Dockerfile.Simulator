@@ -1,6 +1,5 @@
 
-FROM ghcr.io/kosmoedge/nmf-libraries
-ARG VERSION
+FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries
 RUN cd sdk && mvn install
 RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
 WORKDIR /mof/sdk/sdk-package/target/nmf-sdk-${VERSION}/home/nmf/nanosat-mo-supervisor-sim
