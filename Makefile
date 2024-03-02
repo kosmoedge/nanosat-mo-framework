@@ -37,7 +37,7 @@ space-module-%: libraries
 	cd package && docker buildx build --no-cache --platform linux/amd64,linux/arm64/v8 --build-arg MODULE_PATH=sdk/examples/space/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest . --push
 
 ground-module-%: libraries
-	cd package && docker build --build-arg VERSION=${VERSION} --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
+	cd package && docker build --build-arg MODULE_PATH=sdk/examples/ground/$* --build-arg VERSION=${VERSION} -f Dockerfile.Module -t ghcr.io/kosmoedge/$*:latest .
 
 create_docker_net:
 	@ docker network inspect mo-bridge > /dev/null 2> /dev/null && : || docker network create mo-bridge
