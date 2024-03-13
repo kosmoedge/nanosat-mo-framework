@@ -33,9 +33,9 @@ import com.github.sarxos.webcam.ds.fswebcam.FsWebcamDriver;
  *
  * @author Kosmoedge
  */
-public class CameraWindowsAdapter implements CameraAdapterInterface {
+public class FsCameraAdapter implements CameraAdapterInterface {
 
-    private static final Logger LOGGER = Logger.getLogger(CameraWindowsAdapter.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FsCameraAdapter.class.getName());
     private static final Duration PREVIEW_EXPOSURE_TIME = new Duration(0.002);
     private static final Duration MINIMUM_PERIOD = new Duration(1);
     private static final float PREVIEW_GAIN = 8.f;
@@ -46,14 +46,14 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
     private final PictureFormatList supportedFormats = new PictureFormatList();
     private final PowerControlAdapterInterface pcAdapter;
 
-    public CameraWindowsAdapter(PowerControlAdapterInterface pcAdapter) {
+    public FsCameraAdapter(PowerControlAdapterInterface pcAdapter) {
         this.pcAdapter = pcAdapter;
         this.supportedFormats.add(PictureFormat.RAW);
         this.supportedFormats.add(PictureFormat.RGB24);
         this.supportedFormats.add(PictureFormat.BMP);
         this.supportedFormats.add(PictureFormat.PNG);
         this.supportedFormats.add(PictureFormat.JPG);
-        LOGGER.log(Level.INFO, "CameraWindowsAdapter Initialisation");
+        LOGGER.log(Level.INFO, "FsCameraAdapter Initialisation");
         Webcam.setDriver(new FsWebcamDriver());
     }
 
@@ -91,7 +91,7 @@ public class CameraWindowsAdapter implements CameraAdapterInterface {
     @Override
     public Picture takePicture(final CameraSettings settings) throws IOException {
         synchronized (this) {
-            LOGGER.log(Level.INFO, "CameraWindowsAdapter ready to take picture");
+            LOGGER.log(Level.INFO, "FsCameraAdapter ready to take picture");
             final Time timestamp = HelperTime.getTimestampMillis();
 
             Webcam webcam = Webcam.getDefault();
