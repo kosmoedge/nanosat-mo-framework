@@ -105,12 +105,14 @@ public class FsCameraAdapter implements CameraAdapterInterface {
             LOGGER.log(Level.INFO, "Resolution set.");
             webcam.open();
             LOGGER.log(Level.INFO, "Opened camera");
-            byte[] data = webcam.getImageBytes().array();
+           
+            BufferedImage image = webcam.getImage();
+            LOGGER.log(Level.INFO, "Image taken");
             webcam.close();
-
-            if (settings.getFormat() != PictureFormat.RAW) {
-                data = convertImage(data, settings.getFormat());
-            }
+            LOGGER.log(Level.INFO, "Closed camera");
+            
+            byte[] data = convertImage(image, settings.getFormat());
+            LOGGER.log(Level.INFO, "Image converted to byte array");
 
             final CameraSettings replySettings = new CameraSettings();
             replySettings.setResolution(settings.getResolution());
@@ -134,8 +136,7 @@ public class FsCameraAdapter implements CameraAdapterInterface {
         return supportedFormats;
     }
 
-    private byte[] convertImage(byte[] rawImage, final PictureFormat targetFormat) throws IOException {
-        BufferedImage image = OPSSATCameraDebayering.getDebayeredImage(rawImage);
+    private byte[] convertImage(BufferedImage image, final PictureFormat targetFormat) throws IOException {
         byte[] ret = null;
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -162,6 +163,10 @@ public class FsCameraAdapter implements CameraAdapterInterface {
             stream.close();
         } else if (targetFormat.equals(PictureFormat.JPG)) {
             ImageIO.write(image, "JPEG", stream);
+            ret = stream.toByteArray();
+            stream.close();
+        } else if (targetFormat.equals(PictureFormat.RAW)) {
+            ImageIO.write(image, "RAW", stream);
             ret = stream.toByteArray();
             stream.close();
         } else {
