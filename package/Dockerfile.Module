@@ -1,10 +1,13 @@
-FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries
+FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries:maven-3.8.1
 ARG VERSION
 ENV APP=${APP}
 ENV SUPERVISOR=${SUPERVISOR}
 ENV VERSION=${VERSION}
+
+RUN apt-get update
+RUN apt-get install -y netcat
 WORKDIR /mof
-RUN cd sdk/ && mvn install
+RUN cd sdk/ && mvn clean install
 COPY scripts/start_module.sh .
 COPY scripts/entrypoint.sh .
 EXPOSE 1024
