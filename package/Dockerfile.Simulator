@@ -1,5 +1,5 @@
 
-FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries:maven-3.8.1
+FROM --platform=linux/arm64/v8 ghcr.io/kosmoedge/nmf-libraries:2136
 ARG VERSION
 ENV VERSION=${VERSION}
 RUN apt-get update
