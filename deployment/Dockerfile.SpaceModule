@@ -21,14 +21,11 @@ ARG MODULE_NAME=${MODULE_NAME}
 ENV SUPERVISOR = ${SUPERVISOR}
 
 # Copy module jar and all corresponding property files in the same container directory
-RUN mkdir /opt/space-module
-COPY --from=builder /build/${MODULE_PATH}/target/${MODULE_NAME}-${VERSION}-jar-with-dependencies.jar /opt/space-module/module.jar
-COPY logging.properties /opt/space-module/
-COPY sdk/sdk-package/src/main/resources/space-common/*.properties /opt/space-module/
-COPY sdk/sdk-package/src/main/resources/space-app-root/*.properties /opt/space-module/
-
-# Set the working directory in the container
 WORKDIR /opt/space-module
+COPY --from=builder /build/${MODULE_PATH}/target/${MODULE_NAME}-${VERSION}-jar-with-dependencies.jar ./module.jar
+COPY logging.properties ./
+COPY sdk/sdk-package/src/main/resources/space-common/*.properties ./
+COPY sdk/sdk-package/src/main/resources/space-app-root/*.properties ./
 
 # Run jar
 CMD ["sh","-c", "java -jar -Desa.mo.nmf.centralDirectoryURI=$SUPERVISOR module.jar"]

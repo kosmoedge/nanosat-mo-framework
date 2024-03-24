@@ -28,6 +28,6 @@ services:
   supervisor:
     container_name: supervisor
     restart: on-failure
-    image: ghcr.io/kosmoedge/nmf-simulator:latest
+    image: ghcr.io/kosmoedge/supervisor:latest
     ports:
       - 127.0.0.1:1024:1024
