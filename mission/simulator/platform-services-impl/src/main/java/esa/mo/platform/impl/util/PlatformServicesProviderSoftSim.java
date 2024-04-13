@@ -218,7 +218,7 @@ public class PlatformServicesProviderSoftSim implements PlatformServicesProvider
                 }
             } else {
                 pcAdapter = new PowerControlSoftSimAdapter();
-                camAdapter = new FsCameraAdapter(pcAdapter);
+                camAdapter = new CameraSoftSimAdapter(instrumentsSimulator, pcAdapter);
                 adcsAdapter = new AutonomousADCSSoftSimAdapter(instrumentsSimulator, pcAdapter);
                 gpsAdapter = new GPSSoftSimAdapter(instrumentsSimulator, pcAdapter);
                 optRxAdapter = new OpticalDataReceiverSoftSimAdapter(instrumentsSimulator, pcAdapter);

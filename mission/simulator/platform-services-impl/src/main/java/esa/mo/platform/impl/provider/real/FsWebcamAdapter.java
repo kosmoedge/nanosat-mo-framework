@@ -1,9 +1,9 @@
-package esa.mo.platform.impl.provider.softsim;
+package esa.mo.platform.impl.provider.real;
 
+import com.github.sarxos.webcam.WebcamResolution;
 import esa.mo.helpertools.helpers.HelperTime;
 import esa.mo.platform.impl.provider.gen.CameraAdapterInterface;
 import esa.mo.platform.impl.provider.gen.PowerControlAdapterInterface;
-import esa.opssat.camera.processing.OPSSATCameraDebayering;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
-import org.ccsds.moims.mo.mal.MALException;
 import org.ccsds.moims.mo.mal.structures.Blob;
 import org.ccsds.moims.mo.mal.structures.Duration;
 import org.ccsds.moims.mo.mal.structures.Time;
@@ -30,31 +29,33 @@ import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.ds.fswebcam.FsWebcamDriver;
 
 /**
+ * This is an adapter used by the platform service of the supervisor to achieve certain functionalities
+ * with the actual underlying camera hardware through the use of a
+ * <a href="https://github.com/sarxos/webcam-capture">Java Webcam Capture library</a> and
+ * <a href="https://manpages.ubuntu.com/manpages/bionic/man1/fswebcam.1.html">fswebcam library</a>,
+ * which is a small and simple webcam handling library for *nix.
  *
  * @author Kosmoedge
  */
-public class FsCameraAdapter implements CameraAdapterInterface {
+public class FsWebcamAdapter implements CameraAdapterInterface {
 
-    private static final Logger LOGGER = Logger.getLogger(FsCameraAdapter.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FsWebcamAdapter.class.getName());
     private static final Duration PREVIEW_EXPOSURE_TIME = new Duration(0.002);
     private static final Duration MINIMUM_PERIOD = new Duration(1);
     private static final float PREVIEW_GAIN = 8.f;
-    private static final int IMAGE_WIDTH = 640;
-    private static final int IMAGE_HEIGHT = 480;
-    private static final int PREVIEW_WIDTH = 600;
-    private static final int PREVIEW_HEIGHT = 600;
+    private static final Dimension PREVIEW_DIMENSIONS = WebcamResolution.QQVGA.getSize();
     private final PictureFormatList supportedFormats = new PictureFormatList();
     private final PowerControlAdapterInterface pcAdapter;
 
-    public FsCameraAdapter(PowerControlAdapterInterface pcAdapter) {
+    public FsWebcamAdapter(PowerControlAdapterInterface pcAdapter) {
         this.pcAdapter = pcAdapter;
         this.supportedFormats.add(PictureFormat.RAW);
         this.supportedFormats.add(PictureFormat.RGB24);
         this.supportedFormats.add(PictureFormat.BMP);
         this.supportedFormats.add(PictureFormat.PNG);
         this.supportedFormats.add(PictureFormat.JPG);
-        LOGGER.log(Level.INFO, "FsCameraAdapter Initialisation");
         Webcam.setDriver(new FsWebcamDriver());
+        LOGGER.log(Level.INFO, "FsWebcamAdapter Initialised");
     }
 
     @Override
@@ -64,50 +65,53 @@ public class FsCameraAdapter implements CameraAdapterInterface {
 
     @Override
     public String getExtraInfo() {
-        return "NMF Satellite Windows - Kubernetes Camera Adapter";
+        return "NMF Satellite FsWebcam Adapter - Small and simple webcam for *nix";
     }
 
     @Override
     public PixelResolutionList getAvailableResolutions() {
         final PixelResolutionList availableResolutions = new PixelResolutionList();
-        availableResolutions.add(new PixelResolution(new UInteger(IMAGE_WIDTH), new UInteger(IMAGE_HEIGHT)));
-
+        Webcam webcam = Webcam.getDefault();
+        for (Dimension dimension : webcam.getViewSizes()) {
+            availableResolutions.add(new PixelResolution(
+                    new UInteger((long) dimension.getWidth()), new UInteger((long) dimension.getHeight())));
+        }
         return availableResolutions;
     }
 
     @Override
     public synchronized Picture getPicturePreview() throws IOException {
-        final PixelResolution resolution = new PixelResolution(new UInteger(PREVIEW_WIDTH), new UInteger(
-                PREVIEW_HEIGHT));
-        return takePicture(new CameraSettings(resolution, PictureFormat.RAW, PREVIEW_EXPOSURE_TIME, PREVIEW_GAIN,
+        final PixelResolution previewResolution = new PixelResolution(
+                new UInteger((long) PREVIEW_DIMENSIONS.getWidth()), new UInteger((long) PREVIEW_DIMENSIONS.getHeight()));
+        return takePicture(new CameraSettings(previewResolution, PictureFormat.RAW, PREVIEW_EXPOSURE_TIME, PREVIEW_GAIN,
                 PREVIEW_GAIN, PREVIEW_GAIN));
     }
 
     @Override
-    public Picture takeAutoExposedPicture(final CameraSettings settings) throws IOException, MALException {
+    public Picture takeAutoExposedPicture(final CameraSettings settings) throws IOException {
         return takePicture(settings);
     }
 
     @Override
     public Picture takePicture(final CameraSettings settings) throws IOException {
         synchronized (this) {
-            LOGGER.log(Level.INFO, "FsCameraAdapter ready to take picture");
-            final Time timestamp = HelperTime.getTimestampMillis();
-
+            LOGGER.log(Level.INFO, "FsWebcamAdapter ready to take picture");
             Webcam webcam = Webcam.getDefault();
-
             if (webcam == null) {
-                LOGGER.severe("No camera");
+                throw new IOException("Cannot find camera device.");
             }
 
             webcam.setViewSize(new Dimension((int) settings.getResolution().getWidth().getValue(),
                     (int) settings.getResolution().getHeight().getValue()));
             LOGGER.log(Level.INFO, "Resolution set.");
+
             webcam.open();
             LOGGER.log(Level.INFO, "Opened camera");
-           
+
+            final Time timestamp = HelperTime.getTimestampMillis();
             BufferedImage image = webcam.getImage();
-            LOGGER.log(Level.INFO, "Image taken");
+            LOGGER.log(Level.INFO, "Snapshot taken");
+
             webcam.close();
             LOGGER.log(Level.INFO, "Closed camera");
             

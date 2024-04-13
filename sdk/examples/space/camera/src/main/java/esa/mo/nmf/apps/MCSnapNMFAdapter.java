@@ -67,12 +67,14 @@ public class MCSnapNMFAdapter extends MonitorAndControlNMFAdapter {
     private NMFInterface connector;
 
     private static final String PARAMETER_SNAPS_TAKEN = "NumberOfSnapsTaken";
+    private static final String PARAMETER_SNAP_WIDTH = "SnapWidth";
+    private static final String PARAMETER_SNAP_HEIGHT = "SnapHeight";
     private static final String ACTION_TAKE_PICTURE_RAW = "TakeSnap.RAW";
     private static final String ACTION_TAKE_PICTURE_JPG = "TakeSnap.JPG";
 
     private final AtomicInteger snapsTaken = new AtomicInteger(0);
-    private final int width = 640;
-    private final int height = 480;
+    private int width = 640;
+    private int height = 480;
     private final int TOTAL_STAGES = 3;
     private final float DEFAULT_GAIN_R = 10;
     private final float DEFAULT_GAIN_G = 8;
@@ -93,6 +95,14 @@ public class MCSnapNMFAdapter extends MonitorAndControlNMFAdapter {
         defs.add(new ParameterDefinitionDetails("The number of snaps taken.", Union.STRING_SHORT_FORM.byteValue(), "",
                 false, new Duration(10), null, null));
         paramNames.add(new Identifier(PARAMETER_SNAPS_TAKEN));
+
+        defs.add(new ParameterDefinitionDetails("The width of the snaps taken.", Union.INTEGER_SHORT_FORM.byteValue(), "",
+                false, new Duration(10), null, null));
+        paramNames.add(new Identifier(PARAMETER_SNAP_WIDTH));
+
+        defs.add(new ParameterDefinitionDetails("The height of the snaps taken.", Union.INTEGER_SHORT_FORM.byteValue(), "",
+                false, new Duration(10), null, null));
+        paramNames.add(new Identifier(PARAMETER_SNAP_HEIGHT));
         registration.registerParameters(paramNames, defs);
 
         // ------------------ Actions ------------------
@@ -132,12 +142,28 @@ public class MCSnapNMFAdapter extends MonitorAndControlNMFAdapter {
             return (Attribute) HelperAttributes.javaType2Attribute(snapsTaken.get());
         }
 
+        if (PARAMETER_SNAP_WIDTH.equals(identifier.getValue())) {
+            return (Attribute) HelperAttributes.javaType2Attribute(width);
+        }
+
+        if (PARAMETER_SNAP_HEIGHT.equals(identifier.getValue())) {
+            return (Attribute) HelperAttributes.javaType2Attribute(height);
+        }
+
         return null;
     }
 
     @Override
     public Boolean onSetValue(IdentifierList identifiers, ParameterRawValueList values) {
-        return false; // to confirm that the variable was not set
+        if (identifiers.get(0).getValue().equals(PARAMETER_SNAP_WIDTH)) {
+            width = HelperAttributes.attribute2double(values.get(0).getRawValue()).intValue();
+            return true;
+        } else if (identifiers.get(0).getValue().equals(PARAMETER_SNAP_HEIGHT)) {
+            height = HelperAttributes.attribute2double(values.get(0).getRawValue()).intValue();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
