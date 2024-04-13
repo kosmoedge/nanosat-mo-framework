@@ -67,7 +67,7 @@ public class Waveform {
     public Waveform() {
         connector.init(new MCAdapter());
         tasker = new TaskScheduler(1);
-        Logger.getLogger(Waveform.class.getName()).log(Level.FINE, System.getProperty("app.name") + " started.");
+        Logger.getLogger(Waveform.class.getName()).log(Level.FINE, "Waveform started.");
     }
 
     public void pushVal() throws NMFException {

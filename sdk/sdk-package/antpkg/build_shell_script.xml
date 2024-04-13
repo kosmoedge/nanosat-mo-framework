@@ -12,6 +12,7 @@
     <property name="max_heap" value="96m"/>
     <property name="fulloutput" value="${outputDir}/${binDir}"/>
     <copy file="antpkg/unixBinTemplate" tofile="newShellScript"/>
+    <replace file="newShellScript" token="@LICENSE_HEADER@" value="${license}"/>
     <replace file="newShellScript" token="@MAIN_CLASS_NAME@" value="${mainClass}"/>
     <replace file="newShellScript" token="@NMF_HOME@" value="${nmf_home}"/>
     <replace file="newShellScript" token="@NMF_LIB@" value="${nmf_lib}"/>

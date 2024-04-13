@@ -23,7 +23,8 @@
       <property name="id" value="consumer-test-tool"/>
       <property name="binDir" value="nmf/consumer-test-tool"/>
       <property name="max_heap" value="256m"/>
-      <property name="nmf_home" value="%cd%\.."/>
+      <property name="nmf_home" value="%~dp0../../nmf"/>
+      <property name="nmf_lib" value="%~dp0../../nmf/lib"/>
     </ant>
   </target>
 
@@ -41,7 +42,8 @@
       <property name="id" value="cli-tool"/>
       <property name="binDir" value="nmf/cli-tool"/>
       <property name="max_heap" value="256m"/>
-      <property name="nmf_home" value="%cd%\.."/>
+      <property name="nmf_home" value="%~dp0../../nmf"/>
+      <property name="nmf_lib" value="%~dp0../../nmf/lib"/>
     </ant>
   </target>
 
@@ -59,7 +61,8 @@
       <property name="id" value="spacecraft-simulator-gui"/>
       <property name="binDir" value="nmf/spacecraft-simulator-gui"/>
       <property name="max_heap" value="256m"/>
-      <property name="nmf_home" value="%cd%\.."/>
+      <property name="nmf_home" value="%~dp0../../nmf"/>
+      <property name="nmf_lib" value="%~dp0../../nmf/lib"/>
     </ant>
   </target>
 
@@ -79,7 +82,8 @@
       <property name="binDir" value="nmf/nanosat-mo-supervisor-sim"/>
       <property name="platform" value="esa.mo.platform.impl.util.PlatformServicesProviderSoftSim"/>
       <property name="max_heap" value="384m"/>
-      <property name="nmf_home" value="%cd%\.."/>
+      <property name="nmf_home" value="%~dp0../../nmf"/>
+      <property name="nmf_lib" value="%~dp0../../nmf/lib"/>
     </ant>
   </target>
 
