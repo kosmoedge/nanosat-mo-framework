@@ -30,6 +30,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import esa.mo.nmf.apps.operator.OpenCVSobelOperator;
 import org.ccsds.moims.mo.mal.MALException;
 import org.ccsds.moims.mo.mal.MALInteractionException;
 import org.ccsds.moims.mo.mal.MALStandardError;
@@ -173,31 +175,35 @@ public class CameraAcquisitorSystemCameraHandler {
             final String filenamePrefix = folder + File.separator + timeNow + "_" + posString + "_" + this.fileName +
                 "_" + this.actionInstanceObjId;
             try {
+                byte[] finalImage = OpenCVSobelOperator.apply(picture.getContent().getValue());
+                casMCAdapter.pushBlob(finalImage);
                 // Store it in a file!
                 if (picture.getSettings().getFormat().equals(PictureFormat.RAW)) {
                     FileOutputStream fos = new FileOutputStream(filenamePrefix + ".raw");
-                    fos.write(picture.getContent().getValue());
+                    fos.write(finalImage);
                     fos.flush();
                     fos.close();
                 } else if (picture.getSettings().getFormat().equals(PictureFormat.PNG)) {
                     FileOutputStream fos = new FileOutputStream(filenamePrefix + ".png");
-                    fos.write(picture.getContent().getValue());
+                    fos.write(finalImage);
                     fos.flush();
                     fos.close();
                 } else if (picture.getSettings().getFormat().equals(PictureFormat.BMP)) {
                     FileOutputStream fos = new FileOutputStream(filenamePrefix + ".bmp");
-                    fos.write(picture.getContent().getValue());
+                    fos.write(finalImage);
                     fos.flush();
                     fos.close();
                 } else if (picture.getSettings().getFormat().equals(PictureFormat.JPG)) {
                     FileOutputStream fos = new FileOutputStream(filenamePrefix + ".jpg");
-                    fos.write(picture.getContent().getValue());
+                    fos.write(finalImage);
                     fos.flush();
                     fos.close();
                 }
                 LOGGER.log(Level.INFO, "Photograph was taken at {0}", posString);
             } catch (IOException | MALException ex) {
                 LOGGER.log(Level.SEVERE, "Saving of Photograph Failed!/n{0}", ex);
+            } catch (NMFException e) {
+                LOGGER.log(Level.SEVERE, "Error pushing blob with image downstream!", e);
             }
 
             // report action progress

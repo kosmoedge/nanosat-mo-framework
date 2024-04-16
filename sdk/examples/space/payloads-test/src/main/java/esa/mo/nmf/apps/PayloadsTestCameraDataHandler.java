@@ -73,7 +73,7 @@ public class PayloadsTestCameraDataHandler extends CameraAdapter {
     @Override
     public void takePictureResponseReceived(org.ccsds.moims.mo.mal.transport.MALMessageHeader msgHeader,
         org.ccsds.moims.mo.platform.camera.structures.Picture picture, java.util.Map qosProperties) {
-        LOGGER.log(Level.INFO, "Image has been recived");
+        LOGGER.log(Level.INFO, "Image has been received");
         // The picture was received!
         mcAdapter.picturesTaken.incrementAndGet();
         try {

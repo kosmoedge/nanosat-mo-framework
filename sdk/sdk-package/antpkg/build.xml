@@ -5,7 +5,7 @@
     depends="emit-ctt, emit-cli-tool, emit-simulator-gui, emit-space-supervisor, emit-space-app-all-mc-services,
   emit-space-app-publish-clock, emit-space-app-camera, emit-space-app-benchmark, emit-space-app-payloads-test,
   emit-space-app-waveform, emit-space-app-camera-acquisitor-system, emit-space-app-picture-processor,
-  emit-space-app-mp-demo, emit-ground-app-mp-demo">
+  emit-space-app-mp-demo, emit-ground-app-mp-demo, emit-ground-app-camera-acquisitor-system">
     <!--This
     empty target is used as the top level target. Add your app targets to the depends attribute! -->
   </target>
@@ -167,13 +167,13 @@
   <target name="emit-space-app-camera-acquisitor-system">
     <ant antfile="antpkg/build_shell_script.xml">
       <property name="mainClass" value="esa.mo.nmf.apps.CameraAcquisitorSystemApp"/>
-      <property name="id" value="start_camera-acquisitor-system"/>
-      <property name="binDir" value="camera-acquisitor-system"/>
+      <property name="id" value="start_space-camera-acquisitor-system"/>
+      <property name="binDir" value="space-camera-acquisitor-system"/>
     </ant>
     <ant antfile="antpkg/build_batch_script.xml">
       <property name="mainClass" value="esa.mo.nmf.apps.CameraAcquisitorSystemApp"/>
-      <property name="id" value="start_camera-acquisitor-system"/>
-      <property name="binDir" value="camera-acquisitor-system"/>
+      <property name="id" value="start_space-camera-acquisitor-system"/>
+      <property name="binDir" value="space-camera-acquisitor-system"/>
     </ant>
   </target>
   <target name="emit-space-app-picture-processor">
@@ -211,6 +211,18 @@
       <property name="mainClass" value="esa.mo.ground.mp.MPGroundDemo"/>
       <property name="id" value="start_mp-ground-demo"/>
       <property name="binDir" value="mp-ground-demo"/>
+    </ant>
+  </target>
+  <target name="emit-ground-app-camera-acquisitor-system">
+    <ant antfile="antpkg/build_shell_script.xml">
+      <property name="mainClass" value="esa.mo.ground.cameraacquisotorground.SpringInitiator"/>
+      <property name="id" value="start_ground-camera-acquisitor-system"/>
+      <property name="binDir" value="ground-camera-acquisitor-system"/>
+    </ant>
+    <ant antfile="antpkg/build_batch_script.xml">
+      <property name="mainClass" value="esa.mo.ground.cameraacquisotorground.SpringInitiator"/>
+      <property name="id" value="start_ground-camera-acquisitor-system"/>
+      <property name="binDir" value="ground-camera-acquisitor-system"/>
     </ant>
   </target>
 </project>

@@ -13,9 +13,9 @@
  * You on an "as is" basis and without warranties of any kind, including without
  * limitation merchantability, fitness for a particular purpose, absence of
  * defects or errors, accuracy or non-infringement of intellectual property rights.
- * 
+ *
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  * ----------------------------------------------------------------------------
  */
 package esa.mo.ground.cameraacquisotorground;
@@ -27,14 +27,15 @@ import esa.mo.ground.restservice.GroundTrack;
 import esa.mo.ground.restservice.Pass;
 import esa.mo.ground.restservice.PositionAndTime;
 import esa.mo.helpertools.helpers.HelperAttributes;
+import esa.mo.mc.impl.provider.ParameterInstance;
 import esa.mo.nmf.NMFException;
 import esa.mo.nmf.apps.CameraAcquisitorSystemCameraTargetHandler;
 import esa.mo.nmf.apps.CameraAcquisitorSystemMCAdapter;
+import esa.mo.nmf.commonmoadapter.CompleteDataReceivedListener;
 import esa.mo.nmf.groundmoadapter.GroundMOAdapterImpl;
 import esa.mo.nmf.sdk.OrekitResources;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+
 import org.ccsds.moims.mo.com.activitytracking.ActivityTrackingHelper;
 import org.ccsds.moims.mo.com.activitytracking.structures.ActivityAcceptance;
 import org.ccsds.moims.mo.com.activitytracking.structures.ActivityExecution;
@@ -60,14 +62,7 @@ import org.ccsds.moims.mo.common.directory.structures.ProviderSummary;
 import org.ccsds.moims.mo.common.directory.structures.ProviderSummaryList;
 import org.ccsds.moims.mo.mal.MALException;
 import org.ccsds.moims.mo.mal.MALInteractionException;
-import org.ccsds.moims.mo.mal.structures.Attribute;
-import org.ccsds.moims.mo.mal.structures.ElementList;
-import org.ccsds.moims.mo.mal.structures.Identifier;
-import org.ccsds.moims.mo.mal.structures.IdentifierList;
-import org.ccsds.moims.mo.mal.structures.Subscription;
-import org.ccsds.moims.mo.mal.structures.UOctet;
-import org.ccsds.moims.mo.mal.structures.URI;
-import org.ccsds.moims.mo.mal.structures.UShort;
+import org.ccsds.moims.mo.mal.structures.*;
 import org.ccsds.moims.mo.mal.transport.MALMessageHeader;
 import org.ccsds.moims.mo.mc.action.structures.ActionInstanceDetails;
 import org.ccsds.moims.mo.mc.alert.structures.AlertEventDetails;
@@ -103,7 +98,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CameraAcquisitorGround {
 
     private static final Logger LOGGER = Logger.getLogger(CameraAcquisitorGround.class.getName());
-    private static final String PROVIDER_CAMERA_APP = "App: exp495";
+    private static final String PROVIDER_CAMERA_APP = "App: space-camera-acquisitor-system";
 
     private GroundMOAdapterImpl gma;
     private final OrbitHandler orbitHandler;
@@ -158,6 +153,7 @@ public class CameraAcquisitorGround {
         private static final String PICTURE_WIDTH = "pictureWidth";
         private static final String PICTURE_HEIGHT = "pictureHeight";
         private static final String PICTURE_TYPE = "pictureType";
+        private static final String LAST_SAT_IMAGE = "SatelliteImage";
     }
 
     /**
@@ -200,7 +196,7 @@ public class CameraAcquisitorGround {
             LOGGER.log(Level.SEVERE, "No directoryURI given! exiting now");
             System.exit(1);
         }
-        LOGGER.log(Level.INFO, "Parsing arguements...");
+        LOGGER.log(Level.INFO, "Parsing arguments...");
 
         URI directoryURI = new URI(args.getSourceArgs()[0]);
         LOGGER.log(Level.INFO, "directoryURI = " + directoryURI);
@@ -220,7 +216,6 @@ public class CameraAcquisitorGround {
         LOGGER.log(Level.INFO, "Retrieving providers...");
         while (gma == null) {
             try {
-                //System.out.println("Retrieving providers...");
                 providers = GroundMOAdapterImpl.retrieveProvidersFromDirectory(directoryURI);
                 LOGGER.log(Level.INFO, "Finished retrieving providers");
                 for (ProviderSummary provider : providers) {
@@ -228,9 +223,10 @@ public class CameraAcquisitorGround {
 
                     if (provider.getProviderId().getValue().equals(PROVIDER_CAMERA_APP)) {
                         gma = new GroundMOAdapterImpl(provider);
+                        gma.addDataReceivedListener(new ImageDataReceivedAdapter());
                         break;
                     } else {
-                        LOGGER.log(Level.WARNING, "Camera Acqisitor App not found! Retrying...");
+                        LOGGER.log(Level.WARNING, "Camera Acquisition App not found! Retrying...");
                     }
                 }
             } catch (MALException | MalformedURLException | MALInteractionException ex) {
@@ -239,9 +235,9 @@ public class CameraAcquisitorGround {
         }
         try {
             Subscription subscription = HelperCOM.generateSubscriptionCOMEvent("ActivityTrackingListener",
-                ActivityTrackingHelper.EXECUTION_OBJECT_TYPE);
+                    ActivityTrackingHelper.EXECUTION_OBJECT_TYPE);
             gma.getCOMServices().getEventService().addEventReceivedListener(subscription,
-                new EventReceivedListenerAdapter());
+                    new EventReceivedListenerAdapter());
             setInitialParameters();
 
             // get previous requests
@@ -259,7 +255,7 @@ public class CameraAcquisitorGround {
 
             GetAllArchiveAdapter archiveAdapter = new GetAllArchiveAdapter();
             gma.getCOMServices().getArchiveService().getArchiveStub().query(true, new ObjectType(new UShort(0),
-                new UShort(0), new UOctet((short) 0), new UShort(0)), archiveQueryList, null, archiveAdapter);
+                    new UShort(0), new UOctet((short) 0), new UShort(0)), archiveQueryList, null, archiveAdapter);
 
             LOGGER.log(Level.INFO, "Finished getting archive entries!");
         } catch (MALException | MALInteractionException ex) {
@@ -290,8 +286,8 @@ public class CameraAcquisitorGround {
      */
     @PostMapping("/schedulePhotographPosition")
     public Long schedulePhotographPosition(@RequestParam(value = "latitude") double latitude, @RequestParam(
-                                                                                                            value = "longitude") double longitude,
-        @RequestParam(value = "timeStamp") String timeStamp) {
+            value = "longitude") double longitude,
+                                           @RequestParam(value = "timeStamp") String timeStamp) {
 
         AbsoluteDate scheduleDate = new AbsoluteDate(timeStamp, TimeScalesFactory.getUTC());
 
@@ -305,7 +301,7 @@ public class CameraAcquisitorGround {
                 idList.add(new Identifier(CameraAcquisitorSystemCameraTargetHandler.ACTION_PHOTOGRAPH_LOCATION));
 
                 ObjectInstancePairList objIds = gma.getMCServices().getActionService().getActionStub().listDefinition(
-                    idList);
+                        idList);
                 if (objIds == null) {
                     LOGGER.log(Level.SEVERE, "Action does not exist, please check if space application is running");
                 }
@@ -320,7 +316,7 @@ public class CameraAcquisitorGround {
                 } else {
                     LOGGER.log(Level.INFO, "new Action: {0}", actionID);
                     activeActions.put(actionID,
-                        new ActionReport[CameraAcquisitorSystemCameraTargetHandler.PHOTOGRAPH_LOCATION_STAGES]);
+                            new ActionReport[CameraAcquisitorSystemCameraTargetHandler.PHOTOGRAPH_LOCATION_STAGES]);
                 }
                 return actionID;
 
@@ -345,10 +341,10 @@ public class CameraAcquisitorGround {
      */
     @GetMapping("/photographTime")
     public LinkedList<String> getTimeOfPhotograph(@RequestParam(value = "latitude") double latitude, @RequestParam(
-                                                                                                                   value = "longitude") double longitude,
-        @RequestParam(value = "maxAngle", defaultValue = "" + DEFAULT_MAX_ANGLE) double maxAngle, @RequestParam(
-                                                                                                                value = "timeMode",
-                                                                                                                defaultValue = "ANY") OrbitHandler.TimeModeEnum timeMode) {
+            value = "longitude") double longitude,
+                                                  @RequestParam(value = "maxAngle", defaultValue = "" + DEFAULT_MAX_ANGLE) double maxAngle, @RequestParam(
+            value = "timeMode",
+            defaultValue = "ANY") OrbitHandler.TimeModeEnum timeMode) {
         // reset propagator state
         orbitHandler.reset();
         AbsoluteDate simTime = CameraAcquisitorSystemMCAdapter.getNow();
@@ -359,7 +355,7 @@ public class CameraAcquisitorGround {
         while (simTime.compareTo(simEnd) < 0 && results.size() <= NUM_TRIES) {
 
             Pass pass = orbitHandler.getPassTime(latitude, longitude, maxAngle, timeMode, simTime,
-                DEFAULT_WORST_CASE_ROTATION_TIME_SEC, MAX_SIM_RANGE);
+                    DEFAULT_WORST_CASE_ROTATION_TIME_SEC, MAX_SIM_RANGE);
             simTime = pass.getOptimalTime();
 
             // if timeslot available add to possible results
@@ -385,20 +381,49 @@ public class CameraAcquisitorGround {
      */
     @GetMapping("/groundTrack")
     public GroundTrack groundTrack(@RequestParam(value = "duration", defaultValue = "" +
-        DEFAULT_GROUND_TRACK_DURATION) long duration, @RequestParam(value = "stepsize", defaultValue = "" +
+            DEFAULT_GROUND_TRACK_DURATION) long duration, @RequestParam(value = "stepsize", defaultValue = "" +
             DEFAULT_STEPSIZE) long stepsize) {
         AbsoluteDate now = CameraAcquisitorSystemMCAdapter.getNow();
         AbsoluteDate endDate = now.shiftedBy(duration);
 
         //cache for one hour.
         if (cachedTrack.length > 1 && (now.durationFrom(cachedTrack[0].orekitDate) < HOUR_IN_SECONDS || endDate
-            .durationFrom(cachedTrack[cachedTrack.length - 1].orekitDate) < HOUR_IN_SECONDS)) {
+                .durationFrom(cachedTrack[cachedTrack.length - 1].orekitDate) < HOUR_IN_SECONDS)) {
             return new GroundTrack(counter.incrementAndGet(), cachedTrack);
         }
 
         PositionAndTime[] track = orbitHandler.getGroundTrack(now, endDate, stepsize);
         cachedTrack = track;
         return new GroundTrack(counter.incrementAndGet(), track);
+    }
+
+    private static class ImageDataReceivedAdapter extends CompleteDataReceivedListener {
+
+        @Override
+        public void onDataReceived(ParameterInstance parameterInstance) {
+            String parameterName = parameterInstance.getName().getValue();
+            Attribute parameterAttribute = parameterInstance.getParameterValue().getRawValue();
+            LOGGER.log(Level.INFO, "Parameter name: {0}, Data content: {1}", new Object[]{
+                    parameterName, parameterAttribute});
+            if (Parameter.LAST_SAT_IMAGE.equals(parameterName)) {
+                LOGGER.log(Level.INFO, "Satellite image received.");
+                try {
+                    // Transform to byte array
+                    Blob image = (Blob) parameterAttribute;
+                    byte[] imageByteArray = image.getValue();
+                    // Store it in a file!
+                    FileOutputStream fos = new FileOutputStream("sat-image.png");
+                    fos.write(imageByteArray);
+                    fos.flush();
+                    fos.close();
+                    LOGGER.log(Level.INFO, "Satellite image stored.");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (MALException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     /**
@@ -451,7 +476,7 @@ public class CameraAcquisitorGround {
         System.out.println("before " + before);
         System.out.println("after " + after);
         return (before == null || scheduleDate.durationFrom(before) > DEFAULT_WORST_CASE_ROTATION_TIME_SEC &&
-            scheduleDate.compareTo(before) != 0) && (after == null || after.durationFrom(scheduleDate) >
+                scheduleDate.compareTo(before) != 0) && (after == null || after.durationFrom(scheduleDate) >
                 DEFAULT_WORST_CASE_ROTATION_TIME_SEC && scheduleDate.compareTo(after) != 0);
     }
 
@@ -467,9 +492,10 @@ public class CameraAcquisitorGround {
         gma.setParameter(Parameter.GAIN_RED, 1.0f);
         gma.setParameter(Parameter.GAIN_GREEN, 1.0f);
         gma.setParameter(Parameter.GAIN_BLUE, 1.0f);
-        gma.setParameter(Parameter.PICTURE_WIDTH, 2048);
-        gma.setParameter(Parameter.PICTURE_HEIGHT, 1944);
+        gma.setParameter(Parameter.PICTURE_WIDTH, 640);
+        gma.setParameter(Parameter.PICTURE_HEIGHT, 480);
         gma.setParameter(Parameter.PICTURE_TYPE, PictureFormat.PNG.getOrdinal());
+        gma.setParameter(Parameter.LAST_SAT_IMAGE, new Blob("blob-reset".getBytes()));
     }
 
     private void updateEvent(long actionID, int type, Object body) {
@@ -498,10 +524,10 @@ public class CameraAcquisitorGround {
             }
             if (success) {
                 LOGGER.log(Level.INFO, "Action Update: ID={0}, Execution Stage={1}", new Object[]{actionID,
-                                                                                                  executionStage});
+                        executionStage});
             } else {
                 LOGGER.log(Level.WARNING, "Action Unsuccessful: ID={0}, Execution Stage={1}", new Object[]{actionID,
-                                                                                                           executionStage});
+                        executionStage});
             }
 
         } else if (type == AlertEventDetails.TYPE_SHORT_FORM) {
@@ -520,7 +546,7 @@ public class CameraAcquisitorGround {
                     for (int i = 0; i < attValues.size(); i++) {
                         AttributeValue attValue = attValues.get(i);
                         messageToDisplay.append("[").append(i).append("] ").append(attValue.getValue().toString())
-                            .append("\n");
+                                .append("\n");
                     }
                 }
             }
@@ -551,7 +577,7 @@ public class CameraAcquisitorGround {
 
         @Override
         public void queryResponseReceived(MALMessageHeader msgHeader, ObjectType objType, IdentifierList domain,
-            ArchiveDetailsList objDetails, ElementList objBodies, Map qosProperties) {
+                                          ArchiveDetailsList objDetails, ElementList objBodies, Map qosProperties) {
             if (objBodies != null) {
                 int i = 0;
                 for (Object objBody : objBodies) {
@@ -560,19 +586,19 @@ public class CameraAcquisitorGround {
                         try {
                             IdentifierList idList = new IdentifierList();
                             idList.add(new Identifier(
-                                CameraAcquisitorSystemCameraTargetHandler.ACTION_PHOTOGRAPH_LOCATION));
+                                    CameraAcquisitorSystemCameraTargetHandler.ACTION_PHOTOGRAPH_LOCATION));
 
                             ObjectInstancePairList objIds = gma.getMCServices().getActionService().getActionStub()
-                                .listDefinition(idList);
+                                    .listDefinition(idList);
                             if (objIds.size() > 0 && objIds.get(0).getObjDefInstanceId().longValue() == instance
-                                .getDefInstId().longValue() && instance.getArgumentValues().size() == 3) {
+                                    .getDefInstId().longValue() && instance.getArgumentValues().size() == 3) {
 
                                 String timestamp = instance.getArgumentValues().get(2).getValue().toString();
                                 LOGGER.log(Level.INFO, "recovered action: " + timestamp + "\tID: " + objDetails.get(i)
-                                    .getInstId());
+                                        .getInstId());
 
                                 activeActions.put(objDetails.get(i).getInstId(),
-                                    new ActionReport[CameraAcquisitorSystemCameraTargetHandler.PHOTOGRAPH_LOCATION_STAGES]);
+                                        new ActionReport[CameraAcquisitorSystemCameraTargetHandler.PHOTOGRAPH_LOCATION_STAGES]);
 
                                 AbsoluteDate scheduleDate = new AbsoluteDate(timestamp, TimeScalesFactory.getUTC());
 
@@ -584,11 +610,11 @@ public class CameraAcquisitorGround {
                     } else if (objBody instanceof ActivityAcceptance) {
                         ActivityAcceptance instance = ((ActivityAcceptance) objBody);
                         updateEvent(objDetails.get(i).getDetails().getSource().getKey().getInstId(), instance
-                            .getTypeShortForm(), objBody);
+                                .getTypeShortForm(), objBody);
                     } else if (objBody instanceof ActivityExecution) {
                         ActivityExecution instance = ((ActivityExecution) objBody);
                         updateEvent(objDetails.get(i).getDetails().getSource().getKey().getInstId(), instance
-                            .getTypeShortForm(), objBody);
+                                .getTypeShortForm(), objBody);
                     }
                     i++;
                 }
@@ -597,7 +623,7 @@ public class CameraAcquisitorGround {
 
         @Override
         public void queryUpdateReceived(MALMessageHeader msgHeader, ObjectType objType, IdentifierList domain,
-            ArchiveDetailsList objDetails, ElementList objBodies, Map qosProperties) {
+                                        ArchiveDetailsList objDetails, ElementList objBodies, Map qosProperties) {
             queryResponseReceived(msgHeader, objType, domain, objDetails, objBodies, qosProperties);
         }
 

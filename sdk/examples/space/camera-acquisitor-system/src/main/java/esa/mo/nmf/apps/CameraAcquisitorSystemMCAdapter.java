@@ -21,6 +21,7 @@
 package esa.mo.nmf.apps;
 
 import esa.mo.nmf.MonitorAndControlNMFAdapter;
+import esa.mo.nmf.NMFException;
 import esa.mo.nmf.NMFInterface;
 import esa.mo.nmf.annotations.Action;
 import esa.mo.nmf.annotations.ActionParameter;
@@ -32,6 +33,7 @@ import java.time.ZoneId;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.ccsds.moims.mo.mal.provider.MALInteraction;
+import org.ccsds.moims.mo.mal.structures.Blob;
 import org.ccsds.moims.mo.mal.structures.UInteger;
 import org.ccsds.moims.mo.platform.camera.structures.PictureFormat;
 import org.orekit.data.DataProvidersManager;
@@ -98,9 +100,16 @@ public class CameraAcquisitorSystemMCAdapter extends MonitorAndControlNMFAdapter
                generationEnabled = false)
     private int pictureType = 3;
 
+    @Parameter(name = "SatelliteImage", description = "The last satellite image taken")
+    private Blob lastSatImage = new Blob("blob-initialised".getBytes());
+
     // ----------------------------------------------------------------------------------------------
     public PictureFormat getPictureType() {
         return PictureFormat.fromOrdinal(pictureType);
+    }
+
+    public Blob getLastSatelliteImage() {
+        return lastSatImage;
     }
 
     public float getGainRed() {
@@ -210,5 +219,11 @@ public class CameraAcquisitorSystemMCAdapter extends MonitorAndControlNMFAdapter
 
     double getAttitudeSafetyMarginSeconds() {
         return this.attitudeSafetyMarginMS / 1000.0;
+    }
+
+    public void pushBlob(byte[] image) throws NMFException {
+        lastSatImage = new Blob(image);
+        LOGGER.log(Level.INFO, "Pushing satellite image to consumers.");
+        connector.pushParameterValue("SatelliteImage", lastSatImage);
     }
 }

@@ -132,6 +132,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>int.esa.nmf.sdk.examples.ground</groupId>
+      <artifactId>camera-acquisitor-system-ground</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>int.esa.nmf.sdk.examples.space</groupId>
       <artifactId>picture-processor</artifactId>
       <version>${project.version}</version>
@@ -352,7 +357,7 @@
                   <fileset dir="${basedir}/src/main/resources/space-common"/>
                   <fileset dir="${basedir}/src/main/resources/space-app-root"/>
                 </copy>
-                <copy todir="${esa.nmf.sdk.assembly.outputdir}/home/camera-acquisitor-system">
+                <copy todir="${esa.nmf.sdk.assembly.outputdir}/home/space-camera-acquisitor-system">
                   <fileset dir="${basedir}/src/main/resources/space-common"/>
                   <fileset dir="${basedir}/src/main/resources/space-app-root"/>
                 </copy>
@@ -364,6 +369,9 @@
                 <copy todir="${esa.nmf.sdk.assembly.outputdir}/home/mp-demo">
                   <fileset dir="${basedir}/src/main/resources/space-common"/>
                   <fileset dir="${basedir}/src/main/resources/space-app-root"/>
+                </copy>
+                <copy todir="${esa.nmf.sdk.assembly.outputdir}/home/ground-camera-acquisitor-system">
+                  <fileset dir="${basedir}/src/main/resources/space-common"/>
                   <fileset dir="${basedir}/src/main/resources/ground-consumer-root"/>
                 </copy>
               </target>
