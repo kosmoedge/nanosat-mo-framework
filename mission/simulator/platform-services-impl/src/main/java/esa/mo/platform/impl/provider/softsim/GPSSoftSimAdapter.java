@@ -20,8 +20,6 @@
  */
 package esa.mo.platform.impl.provider.softsim;
 
-import java.io.IOException;
-
 import esa.mo.platform.impl.provider.gen.GPSNMEAonlyAdapter;
 import esa.mo.platform.impl.provider.gen.PowerControlAdapterInterface;
 import opssat.simulator.main.ESASimulator;
@@ -43,36 +41,18 @@ public class GPSSoftSimAdapter extends GPSNMEAonlyAdapter implements SimulatorAd
     }
 
     @Override
-    public synchronized String getNMEASentence(final String sentenceIdentifier) throws IOException {
-        final String nmeaSentence = instrumentsSimulator.getpGPS().getNMEASentence(sentenceIdentifier);
-
-        if (nmeaSentence == null) {
-            throw new IOException("The Simulator returned a null object!");
-        }
-
-        return nmeaSentence;
+    public synchronized String getNMEASentence(final String sentenceIdentifier) {
+        return "NMEASentence Test";
     }
 
     @Override
-    public synchronized String getBestXYZSentence() throws IOException {
-        String sentence = instrumentsSimulator.getpGPS().getBestXYZSentence();
-
-        if (sentence == null) {
-            throw new IOException("The simulator returned a null object!");
-        }
-
-        return sentence;
+    public synchronized String getBestXYZSentence() {
+        return "BestXYZSentence Test";
     }
 
     @Override
-    public synchronized String getTIMEASentence() throws IOException {
-        String sentence = instrumentsSimulator.getpGPS().getTIMEASentence();
-
-        if (sentence == null) {
-            throw new IOException("The simulator returned a null object!");
-        }
-
-        return sentence;
+    public synchronized String getTIMEASentence() {
+        return "TIMEASentence Test";
     }
 
     @Override
@@ -80,11 +60,8 @@ public class GPSSoftSimAdapter extends GPSNMEAonlyAdapter implements SimulatorAd
         return pcAdapter.isDeviceEnabled(DeviceType.GNSS);
     }
 
-    @Override
     public TLE getTLE() {
-        TLE tle = this.instrumentsSimulator.getSimulatorNode().getTLE();
-
-        return tle;
+        return this.instrumentsSimulator.getSimulatorNode().getTLE();
     }
 
 }
