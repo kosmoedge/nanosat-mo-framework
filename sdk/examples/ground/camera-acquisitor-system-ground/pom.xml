@@ -65,6 +65,7 @@
   <properties>
     <assembly.mainClass>esa.mo.ground.cameraacquisotorground.SpringInitiator</assembly.mainClass>
     <start-class>esa.mo.ground.cameraacquisotorground.SpringInitiator</start-class>
+    <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
   </properties>
 
   <dependencyManagement>

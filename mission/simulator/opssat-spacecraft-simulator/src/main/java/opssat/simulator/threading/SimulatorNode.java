@@ -299,7 +299,7 @@ public class SimulatorNode extends TaskNode {
             return this.orekitCore.getTLE();
         } else {
             Logger.getLogger(SimulatorNode.class.getCanonicalName()).log(Level.WARNING,
-                "TLE only awailable in Simulator, wenn Using Orekit propagator!");
+                "TLE only available in Simulator, when Using Orekit propagator!");
             return new TLE(OPSSAT_TLE_LINE1, OPSSAT_TLE_LINE2);
         }
     }
