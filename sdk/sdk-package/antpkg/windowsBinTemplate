@@ -11,7 +11,7 @@ set CLASSPATH="#NMF_LIB#"\*
 set JAVA_OPTS=-Xms32m -Xmx#MAX_HEAP# %JAVA_OPTS%
 :endInit
 
-java %JAVA_OPTS% -classpath %CLASSPATH% -Duser.dir="%NMF_HOME%\nanosat-mo-supervisor-sim" -Djava.util.logging.config.file="%NMF_HOME%\logging.properties" -Dnmf.platform.impl=#PLATFORM# #MAINCLASS# %CMD_LINE_ARGS%
+java %JAVA_OPTS% -classpath %CLASSPATH% -Djava.util.logging.config.file="%NMF_HOME%\logging.properties" -Dnmf.platform.impl=#PLATFORM# #MAINCLASS# %CMD_LINE_ARGS%
 
 @endlocal
 
