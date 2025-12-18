@@ -9,7 +9,7 @@ public class OpenCvFileTransformer {
     private OpenCvFileTransformer() {}
     
     public static Mat byteArrayImage2Mat(byte[] imageByteArray) {
-        return Imgcodecs.imdecode(new MatOfByte(imageByteArray), Imgcodecs.CV_LOAD_IMAGE_UNCHANGED);
+        return Imgcodecs.imdecode(new MatOfByte(imageByteArray), Imgcodecs.IMREAD_UNCHANGED);
     }
 
     public static byte[] mat2ByteArrayImage(Mat matrix) {

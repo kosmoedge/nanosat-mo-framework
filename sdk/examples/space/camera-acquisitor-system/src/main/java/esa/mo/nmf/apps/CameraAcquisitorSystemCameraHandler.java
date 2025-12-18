@@ -68,8 +68,8 @@ public class CameraAcquisitorSystemCameraHandler {
     private final CameraAcquisitorSystemMCAdapter casMCAdapter;
 
     // Camera settings:
-    private final int defaultPictureWidth = 2048;
-    private final int defaultPictureHeight = 1944;
+    private final int defaultPictureWidth = 640;
+    private final int defaultPictureHeight = 480;
     public final PixelResolution defaultCameraResolution;
 
     public CameraAcquisitorSystemCameraHandler(CameraAcquisitorSystemMCAdapter casMCAdapter) {

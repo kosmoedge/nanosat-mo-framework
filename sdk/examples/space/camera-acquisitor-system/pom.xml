@@ -49,7 +49,7 @@
     </developer>
   </developers>
   <properties>
-    <assembly.mainClass>esa.mo.nmf.apps.BlankApp</assembly.mainClass>
+    <assembly.mainClass>esa.mo.nmf.apps.CameraAcquisitorSystemApp</assembly.mainClass>
     <maven.deploy.skip>true</maven.deploy.skip>
     <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
   </properties>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
-      <version>3.4.2-0</version>
+      <version>4.9.0-0</version>
     </dependency>
   </dependencies>
   <build>

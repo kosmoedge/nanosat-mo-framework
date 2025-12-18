@@ -91,10 +91,10 @@ public class CameraAcquisitorSystemMCAdapter extends MonitorAndControlNMFAdapter
     private long attitudeSafetyMarginMS = 20000;
 
     @Parameter(description = "The width (x resolution) of the picture taken by the camera", generationEnabled = false)
-    private int pictureWidth = 2048;
+    private int pictureWidth = 640;
 
     @Parameter(description = "The height (y resolution) of the picture taken by the camera", generationEnabled = false)
-    private int pictureHeight = 1944;
+    private int pictureHeight = 480;
 
     @Parameter(description = "The picture type to use (uses PictureFormat ENUM: RAW=0, RGB24=1, BMP=2, PNG=3, JPG=4)",
                generationEnabled = false)

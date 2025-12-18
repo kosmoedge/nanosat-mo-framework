@@ -37,7 +37,7 @@ public class CameraAcquisitorSystemApp {
      * @throws java.lang.Exception If there is an error
      */
     public static void main(final String[] args) throws Exception {
-        OpenCV.loadLocally();
+        OpenCV.loadShared();
         final NanoSatMOConnectorImpl connector = new NanoSatMOConnectorImpl();
         CameraAcquisitorSystemMCAdapter adapter = new CameraAcquisitorSystemMCAdapter(connector);
         connector.init(adapter);
