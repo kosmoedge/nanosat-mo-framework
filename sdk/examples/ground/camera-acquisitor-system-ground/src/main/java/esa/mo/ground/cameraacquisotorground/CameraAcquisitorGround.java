@@ -98,7 +98,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CameraAcquisitorGround {
 
     private static final Logger LOGGER = Logger.getLogger(CameraAcquisitorGround.class.getName());
-    private static final String PROVIDER_CAMERA_APP = "App: space-camera-acquisitor-system";
+    private static final String PROVIDER_CAMERA_APP = "App: camera-acquisitor-system";
 
     private GroundMOAdapterImpl gma;
     private final OrbitHandler orbitHandler;
